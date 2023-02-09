@@ -1,0 +1,42 @@
+# 0.0 packages ####
+library(Seurat)
+library(clustree)
+library(magrittr)
+library(harmony)
+library(dittoSeq)
+library(dplyr)
+library(xlsx)
+library(RColorBrewer)
+cell <- 
+resolution <- 0.9
+min.pct <- 0.1
+FC <- 1 
+# 1.1 clusters ####
+cell = cell %>% 
+  FindClusters(resolution = resolution, reduction = "harmony")
+# saveRDS(T_cell, "T_cell3.rds")
+
+markers = FindAllMarkers(cell,only.pos = T,min.pct = min.pct,
+                               logfc.threshold = FC)
+# saveRDS(T_markers,"T_markers.rds")
+sig_markers <- markers[as.numeric(as.vector(markers$avg_log2FC))>1 & 
+                          as.numeric(markers$p_val_adj)<0.05,]
+# saveRDS(Tsig_markers,"Tsig_markers.rds")
+# write.xlsx(Tsig_markers,file="Tsig_markers.xlsx")
+top10 <- sig_markers %>% 
+  group_by(cluster,.add = T) %>% 
+  top_n(n =10, wt = avg_log2FC) %>% 
+  data.frame()
+# saveRDS(top10,"top10.rds")
+# write.xlsx(top10,file = "top10.xlsx")
+
+# umap ####
+dittoDimPlot(cell, var = "seurat_clusters", reduction = "umap",
+             size = 1, opacity = 1, do.label = T, labels.size = 3, main = "")
+# ggsave("F umap_T.png", width = 6, height = 5)
+dittoDimPlot(cell, var = "HCC_type", reduction = "umap",
+             size = 1, opacity = 1,do.label = T, labels.size = 3, main = "")
+# ggsave("F umap_hcctype.png", width = 6, height = 5)
+
+marker = read.xlsx("marker-MT.xlsx", sheetIndex = 8, header = T)
+marker1 = read.xlsx("marker-MT1.xlsx", sheetIndex = 8, header = T)

@@ -1,0 +1,28 @@
+# Determine the best PCA numbers and resolution
+
+# importing hcc.seu1 ####
+cell <- 
+cell = cell %>%
+  FindVariableFeatures(selection.method = "vst", nfeatures = 2000,verbose = FALSE) %>%
+  ScaleData(verbose = FALSE) %>% 
+  RunPCA(npcs = 50, verbose = FALSE)
+
+# PCA ####
+# source("pca_num.R")
+pca = pca_num(cell)
+# ggsave("pca numbers.png", width = 15, height = 8)
+# pca = 9
+
+# harmony ####
+cell = cell %>% 
+  RunHarmony("orig.ident", plot_convergence = T) %>% 
+  RunUMAP(reduction = "harmony", dims = ) %>% 
+  FindNeighbors(reduction = "harmony", dims = ) %>% 
+  identity()
+
+# resolution ####
+source("reso_num.R")
+reso_num(T_cell)
+ggsave("reo numbers.png", width = 15, height = 15)
+
+# saveRDS(T_cell, "T_cell2.rds")

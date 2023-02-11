@@ -11,18 +11,18 @@ cell <-
 resolution <- 0.9
 min.pct <- 0.1
 FC <- 1 
-# 1.1 clusters ####
+# 1.找出细胞群的top10差异基因 ####
 cell = cell %>% 
   FindClusters(resolution = resolution, reduction = "harmony")
-# saveRDS(T_cell, "T_cell3.rds")
+# saveRDS(cell, "")
 
 markers = FindAllMarkers(cell,only.pos = T,min.pct = min.pct,
                                logfc.threshold = FC)
 # saveRDS(T_markers,"T_markers.rds")
 sig_markers <- markers[as.numeric(as.vector(markers$avg_log2FC))>1 & 
                           as.numeric(markers$p_val_adj)<0.05,]
-# saveRDS(Tsig_markers,"Tsig_markers.rds")
-# write.xlsx(Tsig_markers,file="Tsig_markers.xlsx")
+# saveRDS(sig_markers,"")
+# write.xlsx(sig_markers,file="")
 top10 <- sig_markers %>% 
   group_by(cluster,.add = T) %>% 
   top_n(n =10, wt = avg_log2FC) %>% 
@@ -30,7 +30,8 @@ top10 <- sig_markers %>%
 # saveRDS(top10,"top10.rds")
 # write.xlsx(top10,file = "top10.xlsx")
 
-# umap ####
+
+# 2.作出umap图，查看细胞群的分布情况 ####
 dittoDimPlot(cell, var = "seurat_clusters", reduction = "umap",
              size = 1, opacity = 1, do.label = T, labels.size = 3, main = "")
 # ggsave("F umap_T.png", width = 6, height = 5)
@@ -38,5 +39,18 @@ dittoDimPlot(cell, var = "HCC_type", reduction = "umap",
              size = 1, opacity = 1,do.label = T, labels.size = 3, main = "")
 # ggsave("F umap_hcctype.png", width = 6, height = 5)
 
-marker = read.xlsx("marker-MT.xlsx", sheetIndex = 8, header = T)
+# 3.查看细胞群的top10差异基因中是否含有已知细胞群的marker gene
 marker1 = read.xlsx("marker-MT1.xlsx", sheetIndex = 8, header = T)
+# 已知细胞的marker基因
+
+for(i in 1:dim(marker1)[2])
+{
+  cat(colnames(marker1)[i], "与细胞群top10的差异基因的交集基因", "\n")
+  for (j in as.numeric(levels(cell@active.ident))) {
+    # markergene = marker1[,i]
+    # topgene = top10$gene[which(top10$cluster == j)]
+    cat("\t", "细胞群", j, "\n")
+    cat("\t", intersect(marker1[,i], top10$gene[which(top10$cluster == j)]), "\n")
+    
+  }
+}

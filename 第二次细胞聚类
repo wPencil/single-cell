@@ -42,15 +42,17 @@ dittoDimPlot(cell, var = "HCC_type", reduction = "umap",
 # 3.查看细胞群的top10差异基因中是否含有已知细胞群的marker gene
 marker1 = read.xlsx("marker-MT1.xlsx", sheetIndex = 8, header = T)
 # 已知细胞的marker基因
+# 具体修改，可能会导入多个表，因此后面设置一个单独的Marker
 
-for(i in 1:dim(marker1)[2])
+Marker <- 
+# 导入的已知细胞类型的Marker基因
+FCgene <- 
+# 细胞群之间的差异基因(min.pct = 0.1, FC = 1)
+for(i in 1:dim(Marker)[2])
 {
-  cat(colnames(marker1)[i], "与细胞群top10的差异基因的交集基因", "\n")
+  cat(colnames(Marker)[i], "与细胞群差异基因的交集基因", "\n")
   for (j in as.numeric(levels(cell@active.ident))) {
-    # markergene = marker1[,i]
-    # topgene = top10$gene[which(top10$cluster == j)]
     cat("\t", "细胞群", j, "\n")
-    cat("\t", intersect(marker1[,i], top10$gene[which(top10$cluster == j)]), "\n")
-    
+    cat("\t", intersect(Marker[,i], FCgene$gene[which(FCgene$cluster == j)]), "\n")
   }
 }

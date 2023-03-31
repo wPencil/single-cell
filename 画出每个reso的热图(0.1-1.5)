@@ -1,0 +1,45 @@
+input: seu文件、参数min.pct、logfc.threshold
+for循环
+1.热图名、umap图名
+2.分群
+3.找差异基因（min.pct、logfc.threshold）
+4.画图：热图、umap图
+output：图和top10基因
+###############################################################
+library(Seurat)
+library(magrittr)
+library(dplyr)
+library(dittoSeq)
+no_cluster <- readRDS("T_NK1.rds")
+min_pct <- 0.5
+FC <- 0.5
+
+for (i in seq(0.1, 1.5, by = 0.1)) {
+  # 1.参数
+  topname <- paste("top10_reso", i, ".png", sep = "") # top10差异基因的热图文件名
+  umapname <- paste("umap_reso", i, ".png", sep = "") # umap图文件名
+  
+  # 2.分群
+  cluster <- no_cluster %>%
+    FindClusters(resolution = as.numeric(i), reduction = "harmony")
+  
+  # 3.找差异基因
+  markers <- FindAllMarkers(cluster,only.pos = T,min.pct = min_pct,
+                             logfc.threshold = FC)
+  sig_markers <- markers[as.numeric(as.vector(markers$avg_log2FC))>1 & 
+                           as.numeric(markers$p_val_adj)<0.05,]
+  top <- sig_markers %>%
+    group_by(cluster,.add = T) %>%
+    top_n(n = 20, wt = avg_log2FC) %>%
+    data.frame()
+  saveRDS(top,paste("top10_",i,".rds",sep=""))
+  # 4.画图
+  # 4.1 uamp图
+  dittoDimPlot(cluster, var = "seurat_clusters", reduction = "umap",
+               size = 1, opacity = 1, do.label = T, labels.size = 3, main = "")
+  ggsave(umapname, width = 6, height = 5)
+  # 4.2 top10 热图
+  DoHeatmap(cluster, features = top$gene,label = F) + 
+    scale_fill_gradientn(colors = c("#2167ac", "#ffffff", "#b1182b"))
+  ggsave(filename = topname, width = 10, height = 8)
+}

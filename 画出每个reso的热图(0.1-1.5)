@@ -1,10 +1,10 @@
-input: seu文件、参数min.pct、logfc.threshold
-for循环
-1.热图名、umap图名
-2.分群
-3.找差异基因（min.pct、logfc.threshold）
-4.画图：热图、umap图
-output：图和top10基因
+# input: seu文件、参数min.pct、logfc.threshold
+# for循环
+# 1.热图名、umap图名
+# 2.分群
+# 3.找差异基因（min.pct、logfc.threshold）
+# 4.画图：热图、umap图
+# output：图和top10基因
 ###############################################################
 library(Seurat)
 library(magrittr)

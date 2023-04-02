@@ -1,0 +1,47 @@
+# seu file #######################################################################
+seu <- readRDS()
+
+seu <- FindVariableFeatures(seu, selection.method = "mvp", nfeatures = 2000,verbose = FALSE) 
+all_gene <- seu@assays$RNA@var.features # input all highly variable gene
+seu <- ScaleData(seu, features = all_gene, verbose = FALSE) %>% 
+  RunPCA(npcs = 50, verbose = FALSE)
+
+png(filename = "VariableFeaturePlot_hcc_seu1.png", width = 1000, height = 800)
+print(VariableFeaturePlot(hcc_seu1))
+dev.off()
+
+# Number of selected pca ######################################################### 
+x <- seu
+library(ggplot2)
+library(magrittr)
+library(Seurat)
+ElbowPlot(x, ndims = 50)
+pct<-x[["pca"]]@stdev/sum(x[["pca"]]@stdev)*100
+cumu <- cumsum(pct)
+co1 <- which(cumu>90 & pct<5)[1]
+co2 <- sort(which((pct[1:length(pct) - 1] - pct[2:length(pct)]) > 0.1), decreasing = T)[1] + 1
+pcs <- min(co1, co2)
+plot_df <- data.frame(pct = pct,cumu = cumu,rank = 1:length(pct))
+ggplot(plot_df, aes(cumu, pct, label = rank, color = rank > pcs))+ 
+  geom_text() +geom_vline(xintercept = 90, color = "grey")+ 
+  geom_hline(yintercept = min(pct[pct > 5]), color = "grey")+theme_bw()
+ggsave("pca numbers.png", width = 15, height = 8)
+rm(x,co1,co2,cumu,pct,plot_df)
+
+# harmony:Sample integration######################################################
+library(harmony)
+seu = seu %>% 
+  RunHarmony("orig.ident", plot_convergence = T) %>% 
+  RunUMAP(reduction = "harmony", dims = 1:pcs) %>% 
+  RunTSNE(reduction = "harmony", dims = 1:pcs) %>%
+  FindNeighbors(reduction = "harmony", dims = 1:pcs) %>% 
+  identity()
+  
+# resolution #####################################################################
+library(clustree)
+library(ggplot2)
+sce <- FindClusters(object = seu,resolution = c(seq(.1,1.5,.1)))
+clustree(sce@meta.data, prefix = "RNA_snn_res.")
+ggsave("reso numbers 1637nfetures.png", width = 15, height = 15)
+
+saveRDS(seu, "")

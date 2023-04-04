@@ -1,4 +1,4 @@
-# 0.0 packages ####
+# 0.packages ####
 library(Seurat)
 library(clustree)
 library(magrittr)
@@ -7,52 +7,33 @@ library(dittoSeq)
 library(dplyr)
 library(xlsx)
 library(RColorBrewer)
-cell <- 
-resolution <- 0.9
-min.pct <- 0.1
-FC <- 1 
-# 1.找出细胞群的top10差异基因 ####
-cell = cell %>% 
-  FindClusters(resolution = resolution, reduction = "harmony")
-# saveRDS(cell, "")
 
-markers = FindAllMarkers(cell,only.pos = T,min.pct = min.pct,
-                               logfc.threshold = FC)
-# saveRDS(T_markers,"T_markers.rds")
-sig_markers <- markers[as.numeric(as.vector(markers$avg_log2FC))>1 & 
-                          as.numeric(markers$p_val_adj)<0.05,]
-# saveRDS(sig_markers,"")
-# write.xlsx(sig_markers,file="")
-top10 <- sig_markers %>% 
+#### 1.set parameters ####
+seu <- 
+resolution <- 
+min_pct <- 0.1
+FC <- 1 
+
+#### 2.find sigificant gene ####
+seu = seu %>% 
+  FindClusters(resolution = resolution, reduction = "harmony") %>%
+  ScaleData(features = rownames(seu))
+markers = FindAllMarkers(seu,only.pos = T,min.pct = min_pct, logfc.threshold = FC)
+markers_sig <- markers[as.numeric(as.vector(markers$avg_log2FC)) > FC & as.numeric(markers$p_val_adj)<0.05,]
+markers_top10 <- markers_sig %>% 
   group_by(cluster,.add = T) %>% 
   top_n(n =10, wt = avg_log2FC) %>% 
   data.frame()
-# saveRDS(top10,"top10.rds")
-# write.xlsx(top10,file = "top10.xlsx")
-
-
-# 2.作出umap图，查看细胞群的分布情况 ####
-dittoDimPlot(cell, var = "seurat_clusters", reduction = "umap",
+  
+#### 3.umap ####
+dittoDimPlot(seu, var = "seurat_clusters", reduction = "umap",
              size = 1, opacity = 1, do.label = T, labels.size = 3, main = "")
 # ggsave("F umap_T.png", width = 6, height = 5)
 dittoDimPlot(cell, var = "HCC_type", reduction = "umap",
              size = 1, opacity = 1,do.label = T, labels.size = 3, main = "")
 # ggsave("F umap_hcctype.png", width = 6, height = 5)
 
-# 3.查看细胞群的top10差异基因中是否含有已知细胞群的marker gene
-marker1 = read.xlsx("marker-MT1.xlsx", sheetIndex = 8, header = T)
-# 已知细胞的marker基因
-# 具体修改，可能会导入多个表，因此后面设置一个单独的Marker
-
-Marker <- 
-# 导入的已知细胞类型的Marker基因
-FCgene <- 
-# 细胞群之间的差异基因(min.pct = 0.1, FC = 1)
-for(i in 1:dim(Marker)[2])
-{
-  cat(colnames(Marker)[i], "与细胞群差异基因的交集基因", "\n")
-  for (j in as.numeric(levels(cell@active.ident))) {
-    cat("\t", "细胞群", j, "\n")
-    cat("\t", intersect(Marker[,i], FCgene$gene[which(FCgene$cluster == j)]), "\n")
-  }
-}
+##### 4.heatmap ####
+DoHeatmap(seu, features = markers_top10$gene,label = F) + 
+  scale_fill_gradientn(colors = c("#2167ac", "#ffffff", "#b1182b"))
+ggsave(filename = "heatmap_top10.png", width = 15, height = 20)

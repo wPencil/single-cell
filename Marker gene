@@ -1,0 +1,5 @@
+##### CellMarker上liver的marker gene ####
+NK <- c("CD56", "CD16") # Natural killer cell
+MDSC <- c("CD11b", "CD33") # Myeloid-derived suppressor cell
+DC <- c("CD11c", "CD123", "CD14", "CD80", "CD83", "HLA-DR", "CD68")
+Monocyte <- c("CD14", "CD16", "CD68")

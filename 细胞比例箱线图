@@ -1,3 +1,27 @@
+# 画出两组间，细胞的比例箱线图。先预处理好cellIDs和cell_prop两个文件，然后直接run就行了
+
+test_seu <- readRDS("")
+
+#### cellIDs ####
+cell_ident <- unique(test_seu@active.ident)
+cellIDs <- list()
+for (i in 1:length(cell_ident)) {
+  onelist <- list(rownames(test_seu@meta.data)[which(test_seu$cell_identifies1 == cell_ident[i])]) ###
+  names(onelist) <- cell_ident[i]
+  cellIDs <- c(cellIDs, onelist)
+}
+#### cell_prop ####
+library(Seurat)
+cell_prop<-as.data.frame(prop.table(table(Idents(test_seu),
+                                          test_seu$orig.ident)
+                                    )
+                         )
+cell_prop$pheno <- ifelse(cell_prop$Var2 %in% c("P01","P02","P03","P04","P05","P07"), "R", "NR") ###
+colnames(cell_prop) <- c("cell.type", "subject", "percent", "pheno")
+cell_prop$pheno <- as.factor(cell_prop$pheno)
+
+
+#### run ####
 cell.type.percent.summary.overall <- cell_prop
 # four column: cell_cluster, percent of this cluster, sample, pheno NR/R(factor)
 
@@ -11,7 +35,7 @@ library(coin)
 
 # Plot significant ones with P values displayed
 
-for (i in 1:12) {
+for (i in 1:length(cell_ident)) {
   
   current.df <- cell.type.percent.summary.overall[cell.type.percent.summary.overall$cell.type == names(Ordered_23clusters_cellIDs)[i],]
   
@@ -26,7 +50,7 @@ for (i in 1:12) {
   xlab_text <- paste0(as.character(unique(current.df$cell.type)),": P = ",round(pvalue(wt),4)) 
   
   
-  tiff(file = out.name, width = 300, height = 400, units = "px", res = 120)
+  tiff(file = out.name, width = 300, height = 400, units = "px", res = 120) ####
   
   # Add jitter points and errors (mean_se)
   

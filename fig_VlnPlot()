@@ -1,0 +1,31 @@
+# file_input：输入的数据；gene：输入的基因
+library(Seurat)
+library(ggplot2)
+
+
+file_input <- readRDS("filename.rds")
+gene <- c()
+
+
+for (i in 1:length(gene)) {
+  
+  print(as.character(gene[i]))
+  
+  # tiff
+  # name_VlnPlot <- paste0("VlnPlot","_", gene[i],".tiff")
+  # tiff(file = name_VlnPlot, width = 400, height = 500, units = "px", res = 120) ####
+  # print(VlnPlot(file_input, features = gene[i], y.max = 10)+ 
+  #         NoLegend()+ # Removal of figure notes
+  #         xlab("") + ylab("log2(TPM+1)") # Set x-axis y-axis name
+  #       )
+  # dev.off()
+  
+  # png
+  name_VlnPlot <- paste0("VlnPlot","_", gene[i],".png")
+  print(VlnPlot(file_input, features = gene[i], y.max = 10)+ 
+          NoLegend()+ # Removal of figure notes
+          xlab("") + ylab("log2(TPM+1)") # Set x-axis y-axis name
+  )
+  ggsave(name_VlnPlot, width = 10, height = 8)
+  
+}

@@ -1,0 +1,16 @@
+# cell ids of every cell clusters
+hcc_1th_identified <- readRDS("hcc_seu_1th_identify.rds")
+cell_ident <- unique(hcc_1th_identified@active.ident)
+cellIDs <- list()
+for (i in 1:length(cell_ident)) {
+  onelist <- list(rownames(hcc_1th_identified@meta.data)[which(hcc_1th_identified$identify_1th == cell_ident[i])]) ###
+  names(onelist) <- cell_ident[i]
+  cellIDs <- c(cellIDs, onelist)
+}
+
+# the overall summary of the percent of cell clusters
+data <- data.frame(hcc_1th_identified$identify_1th,hcc_1th_identified$orig.ident)
+cell_prop<-as.data.frame(prop.table(table(data[,1],data[,2])))
+cell_prop$pheno <- ifelse(cell_prop$Var2 %in% c("P01","P02","P03","P04","P05","P07"), "R", "NR") ###
+colnames(cell_prop) <- c("cell.type", "subject", "percent", "pheno")
+cell_prop$pheno <- as.factor(cell_prop$pheno)

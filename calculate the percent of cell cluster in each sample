@@ -1,16 +1,35 @@
-# cell ids of every cell clusters
-hcc_1th_identified <- readRDS("hcc_seu_1th_identify.rds")
-cell_ident <- unique(hcc_1th_identified@active.ident)
-cellIDs <- list()
+# test data---------------------------------------------------------------------
+pbmc <- readRDS("pbmc.rds")
+seu_obj <- pbmc
+
+# 1-----------------------------------------------------------------------------
+# the type of every cell clusters identified
+cell_ident <- unique(seu_obj@active.ident)
+# cell_ident
+# [1] CD14+ Mono   B            Memory CD4 T NK           CD8 T        Naive CD4 T  FCGR3A+ Mono DC          
+# [9] Platelet    
+# Levels: Naive CD4 T CD14+ Mono Memory CD4 T B CD8 T FCGR3A+ Mono NK DC Platelet
+
+# the all barcodes of cells of every cell clusters identified
+cell_barcodes <- list()
 for (i in 1:length(cell_ident)) {
-  onelist <- list(rownames(hcc_1th_identified@meta.data)[which(hcc_1th_identified$identify_1th == cell_ident[i])]) ###
+  onelist <- list(rownames(seu_obj@meta.data)[which(seu_obj@active.ident == cell_ident[i])]) ###
   names(onelist) <- cell_ident[i]
-  cellIDs <- c(cellIDs, onelist)
+  cell_barcodes <- c(cell_barcodes, onelist)
 }
 
+# 2-----------------------------------------------------------------------------
 # the overall summary of the percent of cell clusters
-data <- data.frame(hcc_1th_identified$identify_1th,hcc_1th_identified$orig.ident)
-cell_prop<-as.data.frame(prop.table(table(data[,1],data[,2])))
-cell_prop$pheno <- ifelse(cell_prop$Var2 %in% c("P01","P02","P03","P04","P05","P07"), "R", "NR") ###
-colnames(cell_prop) <- c("cell.type", "subject", "percent", "pheno")
+data <- data.frame(seu_obj@active.ident,seu_obj$orig.ident) # a good name is need
+cell_prop<-as.data.frame(prop.table(table(data[,1],data[,2]))) # calculate the percent
+colnames(cell_prop) <- c("cell_type", "subject", "percent")
+
+cell_prop$pheno <- ifelse(cell_prop$subject %in% c("P01","P02","P03","P04","P05","P07"), "R", "NR") # grouping
+names(cell_prop)[4] <- c("cell_type", "subject", "percent", "pheno")
 cell_prop$pheno <- as.factor(cell_prop$pheno)
+
+# What I finally get is as follow:
+#       1           2       3         4
+#   cell_type   subject   percent   pheno
+# 1
+# 2
